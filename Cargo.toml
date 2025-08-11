@@ -7,6 +7,8 @@ edition = "2024"
 leptos = "0.8.6"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.142"
+tower-http = { version = "0.6.6", features = ["trace"] }
+tracing-error = "0.2.1"
 
 # Frontend-only dependencies (for WebAssembly)
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -21,4 +23,8 @@ jsonwebtoken = "9.3.1"
 sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres"] }
 tokio = { version = "1.47.1", features = ["full"] }
 tracing = "0.1.41"
-tracing-subscriber = "0.3.19"
+tracing-subscriber = { version = "0.3.19", features = [
+    "env-filter",
+    "fmt",
+    "json",
+] }
