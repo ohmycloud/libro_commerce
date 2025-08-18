@@ -3,6 +3,7 @@ use axum::{
     extract::Path,
     routing::{get, post},
 };
+use common::models::Book;
 use std::net::SocketAddr;
 use tokio;
 use tower_http::trace::TraceLayer;
@@ -11,12 +12,13 @@ use tracing_subscriber::Registry;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 mod handlers;
+mod inventory;
 
 async fn root() -> &'static str {
     "Welcome to LibroCommerce!"
 }
 
-async fn get_books(Path(id): Path<i32>) -> Json<Book> {
+async fn get_book(Path(id): Path<i32>) -> Json<Book> {
     // Simulate fetching from inventory module
     let book = inventory::find_book(id).await;
     Json(book)
