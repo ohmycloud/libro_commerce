@@ -41,7 +41,7 @@ async fn main() {
     let subscriber = Registry::default()
         .with(filter)
         .with(fmt::layer().json())
-        .with(ErrlrLayer::default());
+        .with(ErrorLayer::default());
 
     // Initialize the subscriber
     subscriber.init();
