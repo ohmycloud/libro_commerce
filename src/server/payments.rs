@@ -14,7 +14,7 @@ async fn process_payment(
     client: &Client,
     amount: f64,
     card_token: &str,
-) -> Result<String, reqwest::Error> {
+) -> Result<String, Box<dyn std::error::Error>> {
     let resp = client
         .post("https://api.paymentprovider.com/charge")
         .json(&serde_json::json!({
@@ -28,10 +28,7 @@ async fn process_payment(
     if !resp.status().is_success() {
         error!(status = %resp.status(), "Payment API returned error");
 
-        return Err(reqwest::Error::new(
-            reqwest::StatusCode::BAD_REQUEST,
-            "Payment failed",
-        ));
+        return Err("Payment API returned error".into());
     }
 
     let body: PaymentResponse = resp.json().await?;
@@ -40,9 +37,6 @@ async fn process_payment(
     } else {
         error!("Payment was declined by provider");
 
-        Err(reqwest::Error::new(
-            reqwest::StatusCode::PAYMENT_REQUIRED,
-            "Payment failed",
-        ))
+        Err("Payment was declined by provider".into())
     }
 }

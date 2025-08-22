@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use sqlx::types::Json;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct Book {
     pub id: i32,
     pub title: String,
@@ -9,15 +10,15 @@ pub struct Book {
     #[serde(default)]
     pub stock: i32, // Default to 0 if missing
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<BookMetadata>, // Optional nested metadata
+    pub metadata: Option<Json<BookMetadata>>, // Optional nested metadata
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, sqlx::Type)]
 pub struct BookMetadata {
     #[serde(rename = "publish_date")]
     pub published: Option<String>,
     #[serde(default)]
-    pub pages: u32, // Default 0 if missing
+    pub pages: i32, // Default 0 if missing
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -38,7 +39,7 @@ pub struct Address {
     pub country: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct Order {
     pub id: i32,
     #[serde(rename = "userId")]
@@ -50,8 +51,8 @@ pub struct Order {
     pub status: OrderStatus, // Uses default function
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
+#[derive(Debug, Deserialize, Serialize, sqlx::Type)]
+#[sqlx(type_name = "order_status", rename_all = "lowercase")]
 pub enum OrderStatus {
     Pending,
     Confirmed,

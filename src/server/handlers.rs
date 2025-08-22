@@ -1,8 +1,6 @@
+use crate::{inventory, orders, user_accounts};
 use axum::{Json, extract::Path};
-use common::models::{Book, Order, User};
-use inventory;
-use tracing::{error, info, instrument};
-use user_accounts;
+use tracing::{info, instrument};
 
 // GET /api/books
 #[instrument(skip_all)]
@@ -19,7 +17,7 @@ pub async fn books_handler() -> Json<Vec<String>> {
 }
 
 // POST /api/register/:username/:email
-#[instrument(skip(Path))]
+#[instrument(skip(username, email))]
 pub async fn register_handler(Path((username, email)): Path<(String, String)>) -> Json<String> {
     info!(user = %username, "Registering new user");
 
@@ -30,7 +28,7 @@ pub async fn register_handler(Path((username, email)): Path<(String, String)>) -
 }
 
 // POST /api/order/:user_id/:book_ids
-#[instrument(skip(Path))]
+#[instrument(skip(user_id, book_ids))]
 pub async fn order_handler(Path((user_id, book_ids)): Path<(u32, String)>) -> Json<String> {
     info!(user_id, "Creating order");
 

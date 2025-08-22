@@ -1,8 +1,8 @@
-use leptos::*;
+use leptos::{prelude::*, task::spawn_local};
 
 #[component]
-pub fn BookList(cx: Scope) -> Element {
-    let books = create_signal(cx, Vec::<String>::new());
+pub fn BookList() -> impl IntoView {
+    let (r_books, w_books) = signal(Vec::<String>::new());
 
     spawn_local(async move {
         let fetched: Vec<String> = reqwest::get("/api/books")
@@ -11,12 +11,12 @@ pub fn BookList(cx: Scope) -> Element {
             .json()
             .await
             .unwrap();
-        books.set(fetched);
+        w_books.set(fetched);
     });
 
-    view! {cx,
+    view! {
         <ul>
-          {books.get().iter().map(|b| view! { cx, <li>{b.clone()}</li>}).collect::<Vec<_>>()}
+          {r_books.get().iter().map(|b| view! { cx, <li>{b.clone()}</li>}).collect::<Vec<_>>()}
         </ul>
     }
 }

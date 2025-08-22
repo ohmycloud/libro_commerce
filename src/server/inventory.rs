@@ -1,17 +1,17 @@
-use common::models::Book;
 use sqlx::PgPool;
 use tracing::instrument;
+
+use crate::common::model::Book;
 
 /// Retrieves all books from the database.
 #[instrument(skip(pool))]
 pub async fn list_books(pool: &PgPool) -> sqlx::Result<Vec<Book>> {
-    sqlx::query_as!(
-        Book,
+    sqlx::query_as(
         r#"
-            SELECT id, title, author, price
+            SELECT id, title, author, price, stock, metadata
             FROM books
             ORDER BY title
-        "#
+        "#,
     )
     .fetch_all(pool)
     .await
@@ -22,16 +22,15 @@ pub async fn list_books(pool: &PgPool) -> sqlx::Result<Vec<Book>> {
 pub async fn search_books(pool: &PgPool, keyword: &str) -> sqlx::Result<Vec<Book>> {
     let pattern = format!("%{}%", keyword);
 
-    sqlx::query_as!(
-        Book,
+    sqlx::query_as(
         r#"
-            SELECT id, title, author, price
+            SELECT id, title, author, price, stock, metadata
             FROM books
             WHERE title ILIKE $1
             ORDER BY title
         "#,
-        pattern
     )
+    .bind(pattern)
     .fetch_all(pool)
     .await
 }

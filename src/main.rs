@@ -1,7 +1,10 @@
 use std::vec;
 
+mod client;
+mod common;
 mod inventory;
 mod orders;
+mod server;
 mod user_accounts;
 
 fn main() {
