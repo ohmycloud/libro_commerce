@@ -1,8 +1,8 @@
-use crate::server::handlers;
 use axum::{
     Router, http,
     routing::{get, post},
 };
+use libro_commerce::server::handlers;
 use std::net::SocketAddr;
 use tokio;
 use tower_http::trace::TraceLayer;
@@ -32,11 +32,11 @@ pub async fn main() {
         .route("/", get(root))
         .route("/api/books", get(handlers::books_handler))
         .route(
-            "/api/register/:username/:email",
+            "/api/register/{username}/{email}",
             post(handlers::register_handler),
         )
         .route(
-            "/api/order/:user_id/:book_ids",
+            "/api/order/{user_id}/{book_ids}",
             post(handlers::order_handler),
         )
         .layer(
@@ -49,7 +49,7 @@ pub async fn main() {
         );
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("Server running on {}", addr);
+    println!("Server running on http://{}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app.into_make_service())
         .await

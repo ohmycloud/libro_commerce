@@ -2,5 +2,5 @@ mod client;
 pub mod common;
 mod inventory;
 mod orders;
-mod server;
+pub mod server;
 mod user_accounts;

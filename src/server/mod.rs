@@ -1,6 +1,5 @@
 mod db;
-mod handlers;
+pub mod handlers;
 mod inventory;
-mod main;
 mod orders;
 mod payments;
