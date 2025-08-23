@@ -1,19 +1,35 @@
-use crate::{inventory, orders, user_accounts};
-use axum::{Json, extract::Path};
+use crate::{
+    common::model::{Book, Order},
+    server::{
+        inventory,
+        orders::{caculate_total, create_order},
+        payments,
+    },
+    user_accounts,
+};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
+use reqwest::{Client, StatusCode};
+use sqlx::PgPool;
 use tracing::{info, instrument};
+
+#[derive(Clone)]
+pub struct AppState {
+    pub db_pool: PgPool,
+    pub http_client: Client,
+}
 
 // GET /api/books
 #[instrument(skip_all)]
-pub async fn books_handler() -> Json<Vec<String>> {
-    info!("Fetching book list from inventory module");
+#[axum::debug_handler]
+pub async fn books_handler(State(state): State<AppState>) -> Json<Vec<Book>> {
+    let books = inventory::list_books(&state.db_pool)
+        .await
+        .unwrap_or_default();
 
-    // calls inventory::list_books()
-    match inventory::list_books() {
-        books => {
-            info!(count = books.len(), "Successfully retrieved books");
-            Json(books)
-        }
-    }
+    Json(books)
 }
 
 // POST /api/register/:username/:email
@@ -27,20 +43,27 @@ pub async fn register_handler(Path((username, email)): Path<(String, String)>) -
     Json(result)
 }
 
-// POST /api/order/:user_id/:book_ids
-#[instrument(skip(user_id, book_ids))]
-pub async fn order_handler(Path((user_id, book_ids)): Path<(u32, String)>) -> Json<String> {
-    info!(user_id, "Creating order");
+// POST /api/order/{user_id}/{book_ids}
+#[instrument(skip_all)]
+pub async fn order_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<(i32, Vec<i32>, String)>,
+) -> Result<Json<Order>, StatusCode> {
+    let (user_id, book_ids, card_token) = payload;
 
-    // parse comma-separated book IDs
-    let ids = book_ids
-        .split(',')
-        .filter_map(|s| s.parse().ok())
-        .collect::<Vec<u32>>();
+    // 1. Process payment
+    let transaction = payments::process_payment(
+        &state.http_client,
+        caculate_total(&state.db_pool, &book_ids).await,
+        &card_token,
+    )
+    .await
+    .map_err(|_| StatusCode::PAYMENT_REQUIRED)?;
 
-    // create order
-    let order = orders::create_order(user_id, ids);
-    info!(order = %order, "Order created");
+    // 2. Create order record
+    let order = create_order(&state.db_pool, user_id, book_ids)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Json(order)
+    Ok(Json(order))
 }

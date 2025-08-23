@@ -10,7 +10,7 @@ struct PaymentResponse {
 
 /// Process payment by calling an external API.
 #[instrument(skip(client, amount, card_token))]
-async fn process_payment(
+pub async fn process_payment(
     client: &Client,
     amount: f64,
     card_token: &str,

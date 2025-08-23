@@ -2,7 +2,11 @@ use axum::{
     Router, http,
     routing::{get, post},
 };
-use libro_commerce::server::handlers;
+use libro_commerce::server::{
+    db,
+    handlers::{self, AppState},
+};
+use reqwest::Client;
 use std::net::SocketAddr;
 use tokio;
 use tower_http::trace::TraceLayer;
@@ -27,7 +31,16 @@ pub async fn main() {
     // Initialize the subscriber
     subscriber.init();
 
-    // 3. Define routes
+    // Initialize database pool and HTTP client
+    let db_pool = db::init_db_pool().await;
+    let http_client = Client::new();
+
+    let app_state = AppState {
+        db_pool,
+        http_client,
+    };
+
+    // Define routes
     let app = Router::new()
         .route("/", get(root))
         .route("/api/books", get(handlers::books_handler))
@@ -46,7 +59,8 @@ pub async fn main() {
                         method = %request.method(),
                         uri = %request.uri())
             }),
-        );
+        )
+        .with_state(app_state);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("Server running on http://{}", addr);

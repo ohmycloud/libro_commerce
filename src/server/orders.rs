@@ -2,6 +2,21 @@ use crate::common::model::Order;
 use sqlx::{PgPool, Postgres, Transaction};
 use tracing::instrument;
 
+/// Caculate total price
+#[instrument(skip(pool, book_ids))]
+pub async fn caculate_total(pool: &PgPool, book_ids: &Vec<i32>) -> f64 {
+    let mut total = 0.0;
+    for book_id in book_ids {
+        let rec: (f64,) = sqlx::query_as("SELECT price FROM books WHERE id = $1")
+            .bind(book_id)
+            .fetch_one(pool)
+            .await
+            .unwrap_or_default();
+        total += rec.0;
+    }
+    total
+}
+
 /// Creates an order: inserts row, updates inventory, returns Order.
 #[instrument(skip(pool))]
 pub async fn create_order(
