@@ -1,0 +1,22 @@
+### test without token
+
+POST http://127.0.0.1:3000/api/order
+Content-Type: application/json
+
+{
+    user_id": 1,
+    "book_ids":[1, 2, 3],
+    "card_token": "tok"
+}
+
+### test with token
+
+POST http://127.0.0.1:3000/api/order
+Content-Type: application/json
+Authorization: BearereyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTU5MjE2NDIsImlhdCI6MTc1NTkyMTQyNiwic3ViIjoiMSJ9.N1XVcAllHCaP36dOMrsc8Oms8IAyFisPIzbfvHdliNk
+
+{
+    user_id": 1,
+    "book_ids":[1, 2, 3],
+    "card_token": "tok"
+}

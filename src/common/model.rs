@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 
+use crate::common::metadata::AuthorRef;
+
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct Book {
     pub id: i32,

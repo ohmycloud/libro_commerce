@@ -32,7 +32,7 @@ pub async fn books_handler(State(state): State<AppState>) -> Json<Vec<Book>> {
     Json(books)
 }
 
-// POST /api/register/:username/:email
+// POST /api/register/{username}/{email}
 #[instrument(skip(username, email))]
 pub async fn register_handler(Path((username, email)): Path<(String, String)>) -> Json<String> {
     info!(user = %username, "Registering new user");

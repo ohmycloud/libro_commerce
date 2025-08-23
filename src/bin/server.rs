@@ -1,10 +1,12 @@
 use axum::{
     Router, http,
+    middleware::from_fn,
     routing::{get, post},
 };
 use libro_commerce::server::{
     db,
     handlers::{self, AppState},
+    middleware::auth_middleware,
 };
 use reqwest::Client;
 use std::net::SocketAddr;
@@ -40,6 +42,10 @@ pub async fn main() {
         http_client,
     };
 
+    let protected_routes = Router::new()
+        .route("/order", post(handlers::order_handler))
+        .layer(from_fn(auth_middleware));
+
     // Define routes
     let app = Router::new()
         .route("/", get(root))
@@ -48,10 +54,8 @@ pub async fn main() {
             "/api/register/{username}/{email}",
             post(handlers::register_handler),
         )
-        .route(
-            "/api/order/{user_id}/{book_ids}",
-            post(handlers::order_handler),
-        )
+        // mount protected routes under /api
+        .nest("/api", protected_routes)
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
                 tracing::info_span!(
