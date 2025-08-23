@@ -1,4 +1,5 @@
 mod auth;
+mod auth_oauth;
 mod crud;
 pub mod db;
 pub mod graphql;

@@ -2,6 +2,7 @@ use crate::{
     common::model::{Book, NewBook, NewOrderPayload, Order, TokenResponse, UpdateBook, UserLogin},
     server::{
         auth::verify_password,
+        auth_oauth::oauth_client,
         crud::{create_book, delete_book, get_book, update_book},
         inventory,
         orders::{caculate_total, create_order, get_order},
@@ -13,6 +14,7 @@ use axum::{
     Json,
     extract::{Path, State},
     http::StatusCode,
+    response::Redirect,
 };
 use reqwest::Client;
 use secrecy::SecretString;

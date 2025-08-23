@@ -1,5 +1,6 @@
 use async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema, SimpleObject};
 use sqlx::PgPool;
+use tracing::instrument;
 
 use crate::common::model::{Book, Order};
 
@@ -29,7 +30,7 @@ impl QueryRoot {
         let pool = ctx.data_unchecked::<PgPool>();
         let rows: Vec<Book> = sqlx::query_as(
             r#"
-            SELECT id, title, author, price, stock
+            SELECT id, title, author, price, stock, metadata
             FROM books ORDER BY title
             "#,
         )
@@ -49,11 +50,12 @@ impl QueryRoot {
         Ok(ret)
     }
 
+    #[instrument(skip_all)]
     async fn book(&self, ctx: &Context<'_>, id: i32) -> async_graphql::Result<GqlBook> {
         let pool = ctx.data_unchecked::<PgPool>();
         let book: Book = sqlx::query_as(
             r#"
-            SELECT id, title, author, price, stock FROM books WHERE id = $1
+            SELECT id, title, author, price, stock, metadata FROM books WHERE id = $1
             "#,
         )
         .bind(id)

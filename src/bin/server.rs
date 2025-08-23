@@ -75,14 +75,6 @@ pub async fn main() {
         // mount protected routes under /api
         .nest("/api", protected_routes)
         .nest("/api", order_routes)
-        .layer(
-            TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
-                tracing::info_span!(
-                        "http_request",
-                        method = %request.method(),
-                        uri = %request.uri())
-            }),
-        )
         .route(
             "/graphql",
             post(
@@ -100,7 +92,15 @@ pub async fn main() {
             }),
         )
         .layer(Extension(schema))
-        .with_state(app_state);
+        .with_state(app_state)
+        .layer(
+            TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
+                tracing::info_span!(
+                        "http_request",
+                        method = %request.method(),
+                        uri = %request.uri())
+            }),
+        );
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("Server running on http://{}", addr);
