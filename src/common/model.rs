@@ -21,9 +21,9 @@ pub struct BookMetadata {
     pub pages: i32, // Default 0 if missing
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct User {
-    pub id: u32,
+    pub id: i32,
     pub username: String,
     #[serde(rename = "email_address")]
     pub email: String, // Maps to "email_address" in JSON
@@ -31,7 +31,7 @@ pub struct User {
     pub address: Option<Address>, // Nested optional struct
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, sqlx::Type)]
 pub struct Address {
     pub street: String,
     pub city: String,
@@ -78,4 +78,14 @@ pub struct UpdateBook {
     pub author: Option<String>,
     pub price: Option<f64>,
     pub stock: Option<i32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserLogin {
+    pub username: String,
+    pub password: String,
+}
+
+pub struct TokenResponse {
+    pub token: String,
 }

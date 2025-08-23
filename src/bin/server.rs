@@ -3,12 +3,14 @@ use axum::{
     middleware::from_fn,
     routing::{delete, get, post, put},
 };
+use dotenv::dotenv;
 use libro_commerce::server::{
     db,
     handlers::{self, AppState},
     middleware::auth_middleware,
 };
 use reqwest::Client;
+use std::env;
 use std::net::SocketAddr;
 use tokio;
 use tower_http::trace::TraceLayer;
@@ -18,6 +20,11 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 
 #[tokio::main]
 pub async fn main() {
+    // loads .env into env vars
+    dotenv().ok();
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
+    let backup_path = env::var("BACKUP_PATH").expect("BACKUP_PATH not set");
+
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
 
     // Build a subscriber with an error layer

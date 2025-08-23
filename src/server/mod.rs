@@ -6,3 +6,4 @@ mod inventory;
 pub mod middleware;
 mod orders;
 mod payments;
+mod user_accounts;

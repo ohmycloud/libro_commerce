@@ -1,6 +1,7 @@
 use crate::{
-    common::model::{Book, NewBook, Order, UpdateBook},
+    common::model::{Book, NewBook, Order, TokenResponse, UpdateBook, User, UserLogin},
     server::{
+        auth::verify_password,
         crud::{create_book, delete_book, get_book, update_book},
         inventory,
         orders::{caculate_total, create_order},
@@ -14,6 +15,7 @@ use axum::{
     http::StatusCode,
 };
 use reqwest::Client;
+use secrecy::SecretString;
 use sqlx::PgPool;
 use tracing::{info, instrument};
 
@@ -84,17 +86,6 @@ pub async fn list_books_handler(State(state): State<AppState>) -> Json<Vec<Book>
     Json(books)
 }
 
-// POST /api/register/{username}/{email}
-#[instrument(skip(username, email))]
-pub async fn register_handler(Path((username, email)): Path<(String, String)>) -> Json<String> {
-    info!(user = %username, "Registering new user");
-
-    let result = user_accounts::register_user(&username, &email);
-    info!("User registration successful");
-
-    Json(result)
-}
-
 // POST /api/order/{user_id}/{book_ids}
 #[instrument(skip_all)]
 pub async fn order_handler(
@@ -118,4 +109,46 @@ pub async fn order_handler(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(order))
+}
+
+// POST /api/register/{username}/{email}
+#[instrument(skip(username, email))]
+pub async fn register_handler(Path((username, email)): Path<(String, String)>) -> Json<String> {
+    info!(user = %username, "Registering new user");
+
+    let result = user_accounts::register_user(&username, &email);
+    info!("User registration successful");
+
+    Json(result)
+}
+
+/// Verifying Passwords on Login
+#[instrument(skip(state, credentials))]
+pub async fn login_handler(
+    State(state): State<AppState>,
+    Json(credentials): Json<UserLogin>,
+) -> Result<Json<TokenResponse>, StatusCode> {
+    let record = sqlx::query!(
+        r#"
+        SELECT id, password_hash FROM users WHERE username = $1
+        "#,
+        credentials.username
+    )
+    .fetch_one(&state.db_pool)
+    .await
+    .map_err(|_| StatusCode::UNAUTHORIZED)?;
+
+    if verify_password(
+        SecretString::new(Box::from(credentials.password)),
+        SecretString::new(Box::from(record.password_hash)),
+    )
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    {
+        // Issue JWT token
+        Ok(Json(TokenResponse {
+            token: "jwt".into(),
+        }))
+    } else {
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
