@@ -1,6 +1,7 @@
 use crate::{
-    common::model::{Book, Order},
+    common::model::{Book, NewBook, Order, UpdateBook},
     server::{
+        crud::{create_book, delete_book, get_book, update_book},
         inventory,
         orders::{caculate_total, create_order},
         payments,
@@ -10,8 +11,9 @@ use crate::{
 use axum::{
     Json,
     extract::{Path, State},
+    http::StatusCode,
 };
-use reqwest::{Client, StatusCode};
+use reqwest::Client;
 use sqlx::PgPool;
 use tracing::{info, instrument};
 
@@ -21,10 +23,60 @@ pub struct AppState {
     pub http_client: Client,
 }
 
+#[instrument(skip_all)]
+pub async fn create_book_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<NewBook>,
+) -> Result<Json<Book>, StatusCode> {
+    create_book(&state.db_pool, payload)
+        .await
+        .map(Json)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}
+
+#[instrument(skip_all)]
+pub async fn get_book_handler(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<Json<Book>, StatusCode> {
+    get_book(&state.db_pool, id)
+        .await
+        .map(Json)
+        .map_err(|_| StatusCode::NOT_FOUND)
+}
+
+#[instrument(skip_all)]
+pub async fn update_book_handler(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Json(payload): Json<UpdateBook>,
+) -> Result<Json<Book>, StatusCode> {
+    update_book(&state.db_pool, id, payload)
+        .await
+        .map(Json)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}
+
+#[instrument(skip_all)]
+pub async fn delete_book_handler(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<StatusCode, StatusCode> {
+    delete_book(&state.db_pool, id)
+        .await
+        .map(|rows| {
+            if rows > 0 {
+                StatusCode::NO_CONTENT
+            } else {
+                StatusCode::NOT_FOUND
+            }
+        })
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}
+
 // GET /api/books
 #[instrument(skip_all)]
-#[axum::debug_handler]
-pub async fn books_handler(State(state): State<AppState>) -> Json<Vec<Book>> {
+pub async fn list_books_handler(State(state): State<AppState>) -> Json<Vec<Book>> {
     let books = inventory::list_books(&state.db_pool)
         .await
         .unwrap_or_default();

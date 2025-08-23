@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 
-use crate::common::metadata::AuthorRef;
-
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct Book {
     pub id: i32,
@@ -64,4 +62,20 @@ pub enum OrderStatus {
 
 fn default_status() -> OrderStatus {
     OrderStatus::Pending
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct NewBook {
+    pub title: String,
+    pub author: String,
+    pub price: f64,
+    pub stock: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateBook {
+    pub title: Option<String>,
+    pub author: Option<String>,
+    pub price: Option<f64>,
+    pub stock: Option<i32>,
 }

@@ -16,7 +16,40 @@ Content-Type: application/json
 Authorization: BearereyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTU5MjE2NDIsImlhdCI6MTc1NTkyMTQyNiwic3ViIjoiMSJ9.N1XVcAllHCaP36dOMrsc8Oms8IAyFisPIzbfvHdliNk
 
 {
-    user_id": 1,
+    "user_id": 1,
     "book_ids":[1, 2, 3],
     "card_token": "tok"
 }
+
+### Create
+
+POST http://127.0.0.1:3000/api/books
+Content-Type: application/json
+
+{
+    "title": "Learning Perl 6",
+    "author": "brian d foy",
+    "price": 26.85,
+    "stock": 12
+}
+
+### Read All
+
+GET http://127.0.0.1:3000/api/books
+
+### Read One
+
+GET http://127.0.0.1:3000/api/books/10
+
+### Update
+
+PUT http://127.0.0.1:3000/api/books/10
+Content-Type: application/json
+
+{
+    "price": 17.99
+}
+
+### Delete
+
+DELETE http://127.0.0.1:3000/api/books/10

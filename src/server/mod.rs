@@ -1,4 +1,5 @@
 mod auth;
+mod crud;
 pub mod db;
 pub mod handlers;
 mod inventory;

@@ -1,5 +1,4 @@
-use axum::{extract::Request, middleware::Next, response::Response};
-use reqwest::StatusCode;
+use axum::{extract::Request, http::StatusCode, middleware::Next, response::Response};
 use tracing::error;
 
 use crate::server::auth::validate_jwt;

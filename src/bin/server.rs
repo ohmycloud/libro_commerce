@@ -1,7 +1,7 @@
 use axum::{
     Router, http,
     middleware::from_fn,
-    routing::{get, post},
+    routing::{delete, get, post, put},
 };
 use libro_commerce::server::{
     db,
@@ -15,10 +15,6 @@ use tower_http::trace::TraceLayer;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::Registry;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
-
-async fn root() -> &'static str {
-    "Welcome to LibroCommerce!"
-}
 
 #[tokio::main]
 pub async fn main() {
@@ -48,8 +44,11 @@ pub async fn main() {
 
     // Define routes
     let app = Router::new()
-        .route("/", get(root))
-        .route("/api/books", get(handlers::books_handler))
+        .route("/api/books", post(handlers::create_book_handler))
+        .route("/api/books", get(handlers::list_books_handler))
+        .route("/api/books/{id}", get(handlers::get_book_handler))
+        .route("/api/books/{id}", put(handlers::update_book_handler))
+        .route("/api/books/{id}", delete(handlers::delete_book_handler))
         .route(
             "/api/register/{username}/{email}",
             post(handlers::register_handler),
