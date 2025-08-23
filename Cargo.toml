@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.99"
 argon2 = { version = "0.5.3", features = ["std"] }
+async-graphql = "7.0.17"
+async-graphql-axum = "7.0.17"
 axum = { version = "0.8.4", features = ["macros"] }
 dotenv = "0.15.0"
 jsonwebtoken = "9.3.1"

@@ -1,11 +1,16 @@
+use async_graphql_axum::{GraphQLBatchRequest, GraphQLResponse};
 use axum::{
-    Router, http,
+    Router,
+    extract::Extension,
+    http,
     middleware::from_fn,
+    response::Html,
     routing::{delete, get, post, put},
 };
 use dotenv::dotenv;
 use libro_commerce::server::{
     db,
+    graphql::{AppSchema, create_schema},
     handlers::{self, AppState, create_order_handler, get_order_handler},
     middleware::auth_middleware,
 };
@@ -54,6 +59,8 @@ pub async fn main() {
         .route("/orders", get(get_order_handler))
         .layer(from_fn(auth_middleware));
 
+    let schema = create_schema(app_state.db_pool.clone());
+
     // Define routes
     let app = Router::new()
         .route("/api/books", post(handlers::create_book_handler))
@@ -76,6 +83,23 @@ pub async fn main() {
                         uri = %request.uri())
             }),
         )
+        .route(
+            "/graphql",
+            post(
+                |schema: Extension<AppSchema>, req: GraphQLBatchRequest| async move {
+                    GraphQLResponse(schema.execute_batch(req.into_inner()).await)
+                },
+            ),
+        )
+        .route(
+            "/graphiql",
+            get(|| async {
+                Html(async_graphql::http::playground_source(
+                    async_graphql::http::GraphQLPlaygroundConfig::new("/graphql"),
+                ))
+            }),
+        )
+        .layer(Extension(schema))
         .with_state(app_state);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
