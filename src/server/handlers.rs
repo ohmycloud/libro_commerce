@@ -1,10 +1,10 @@
 use crate::{
-    common::model::{Book, NewBook, Order, TokenResponse, UpdateBook, User, UserLogin},
+    common::model::{Book, NewBook, NewOrderPayload, Order, TokenResponse, UpdateBook, UserLogin},
     server::{
         auth::verify_password,
         crud::{create_book, delete_book, get_book, update_book},
         inventory,
-        orders::{caculate_total, create_order},
+        orders::{caculate_total, create_order, get_order},
         payments,
     },
     user_accounts,
@@ -86,32 +86,41 @@ pub async fn list_books_handler(State(state): State<AppState>) -> Json<Vec<Book>
     Json(books)
 }
 
-// POST /api/order/{user_id}/{book_ids}
 #[instrument(skip_all)]
-pub async fn order_handler(
+pub async fn create_order_handler(
     State(state): State<AppState>,
-    Json(payload): Json<(i32, Vec<i32>, String)>,
+    Json(payload): Json<NewOrderPayload>,
 ) -> Result<Json<Order>, StatusCode> {
-    let (user_id, book_ids, card_token) = payload;
-
     // 1. Process payment
+    /*
     let transaction = payments::process_payment(
         &state.http_client,
-        caculate_total(&state.db_pool, &book_ids).await,
-        &card_token,
+        caculate_total(&state.db_pool, &payload.book_ids).await,
+        &payload.card_token,
     )
     .await
-    .map_err(|_| StatusCode::PAYMENT_REQUIRED)?;
+    .map_err(|_| StatusCode::PAYMENT_REQUIRED)?;*/
 
     // 2. Create order record
-    let order = create_order(&state.db_pool, user_id, book_ids)
+    let order = create_order(&state.db_pool, payload.user_id, payload.book_ids)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(order))
 }
 
-// POST /api/register/{username}/{email}
+#[instrument(skip_all)]
+pub async fn get_order_handler(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<Json<Order>, StatusCode> {
+    let order = get_order(&state.db_pool, id)
+        .await
+        .map_err(|_| StatusCode::NOT_FOUND)?;
+
+    Ok(Json(order))
+}
+
 #[instrument(skip(username, email))]
 pub async fn register_handler(Path((username, email)): Path<(String, String)>) -> Json<String> {
     info!(user = %username, "Registering new user");

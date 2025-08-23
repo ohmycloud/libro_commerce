@@ -89,3 +89,10 @@ pub struct UserLogin {
 pub struct TokenResponse {
     pub token: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NewOrderPayload {
+    pub user_id: i32,
+    pub book_ids: Vec<i32>,
+    pub card_token: String,
+}

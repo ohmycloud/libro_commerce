@@ -6,7 +6,7 @@ use axum::{
 use dotenv::dotenv;
 use libro_commerce::server::{
     db,
-    handlers::{self, AppState},
+    handlers::{self, AppState, create_order_handler, get_order_handler},
     middleware::auth_middleware,
 };
 use reqwest::Client;
@@ -46,7 +46,12 @@ pub async fn main() {
     };
 
     let protected_routes = Router::new()
-        .route("/order", post(handlers::order_handler))
+        .route("/order", post(handlers::create_order_handler))
+        .layer(from_fn(auth_middleware));
+
+    let order_routes = Router::new()
+        .route("/orders", post(create_order_handler))
+        .route("/orders", get(get_order_handler))
         .layer(from_fn(auth_middleware));
 
     // Define routes
@@ -62,6 +67,7 @@ pub async fn main() {
         )
         // mount protected routes under /api
         .nest("/api", protected_routes)
+        .nest("/api", order_routes)
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
                 tracing::info_span!(

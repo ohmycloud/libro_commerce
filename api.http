@@ -13,12 +13,12 @@ Content-Type: application/json
 
 POST http://127.0.0.1:3000/api/order
 Content-Type: application/json
-Authorization: BearereyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTU5MjE2NDIsImlhdCI6MTc1NTkyMTQyNiwic3ViIjoiMSJ9.N1XVcAllHCaP36dOMrsc8Oms8IAyFisPIzbfvHdliNk
+authorization: BearereyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTU5NjQ4MDAsImlhdCI6MTc1NTk0MjQ2Nywic3ViIjoiMSJ9.tM_lTSJpMUBcrdfsnZsSZkWeSmMY1m7ccZawZHWyJ-o
 
 {
-    "user_id": 1,
-    "book_ids":[1, 2, 3],
-    "card_token": "tok"
+    "user_id": 111,
+    "book_ids":[5, 2, 3],
+    "card_token": "tiktok"
 }
 
 ### Create
