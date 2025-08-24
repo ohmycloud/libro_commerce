@@ -1,6 +1,5 @@
 mod client;
-pub mod common;
-mod inventory;
-mod orders;
-pub mod server;
-mod user_accounts;
+mod common;
+mod server;
+
+pub use server::create_app;

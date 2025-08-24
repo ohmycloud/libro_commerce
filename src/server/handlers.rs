@@ -8,18 +8,16 @@ use crate::{
         orders::{caculate_total, create_order, get_order},
         payments,
     },
-    user_accounts,
 };
 use axum::{
     Json,
     extract::{Path, State},
     http::StatusCode,
-    response::Redirect,
 };
 use reqwest::Client;
 use secrecy::SecretString;
 use sqlx::PgPool;
-use tracing::{info, instrument};
+use tracing::instrument;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -121,16 +119,6 @@ pub async fn get_order_handler(
         .map_err(|_| StatusCode::NOT_FOUND)?;
 
     Ok(Json(order))
-}
-
-#[instrument(skip(username, email))]
-pub async fn register_handler(Path((username, email)): Path<(String, String)>) -> Json<String> {
-    info!(user = %username, "Registering new user");
-
-    let result = user_accounts::register_user(&username, &email);
-    info!("User registration successful");
-
-    Json(result)
 }
 
 /// Verifying Passwords on Login

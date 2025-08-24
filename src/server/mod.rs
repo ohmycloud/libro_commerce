@@ -1,11 +1,14 @@
+mod app;
 mod auth;
 mod auth_oauth;
 mod crud;
-pub mod db;
-pub mod graphql;
-pub mod handlers;
+mod db;
+mod graphql;
+mod handlers;
 mod inventory;
-pub mod middleware;
+mod middleware;
 mod orders;
 mod payments;
 mod user_accounts;
+
+pub use app::create_app;
