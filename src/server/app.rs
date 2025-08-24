@@ -23,10 +23,12 @@ pub async fn create_app() -> Router {
     // Initialize database pool and HTTP client
     let db_pool = db::init_db_pool().await;
     let http_client = Client::new();
+    let gql_schema = create_schema(db_pool.clone());
 
     let app_state = AppState {
         db_pool,
         http_client,
+        gql_schema,
     };
 
     let protected_routes = Router::new()
@@ -35,10 +37,8 @@ pub async fn create_app() -> Router {
 
     let order_routes = Router::new()
         .route("/orders", post(create_order_handler))
-        .route("/orders", get(get_order_handler))
-        .layer(from_fn(auth_middleware));
-
-    let schema = create_schema(app_state.db_pool.clone());
+        .route("/orders", get(get_order_handler));
+    // .layer(from_fn(auth_middleware));
 
     // Define routes
     let app = Router::new()
@@ -66,7 +66,7 @@ pub async fn create_app() -> Router {
                 ))
             }),
         )
-        .layer(Extension(schema))
+        .layer(Extension(app_state.clone().gql_schema))
         .with_state(app_state)
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {

@@ -4,6 +4,7 @@ use crate::{
         auth::verify_password,
         auth_oauth::oauth_client,
         crud::{create_book, delete_book, get_book, update_book},
+        graphql::AppSchema,
         inventory,
         orders::{caculate_total, create_order, get_order},
         payments,
@@ -23,6 +24,7 @@ use tracing::instrument;
 pub struct AppState {
     pub db_pool: PgPool,
     pub http_client: Client,
+    pub gql_schema: AppSchema,
 }
 
 #[instrument(skip_all)]
